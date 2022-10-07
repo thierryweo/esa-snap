@@ -1,25 +1,7 @@
-FROM alpine:3.12 as base
+FROM openjdk:8-alpine as build
 
-ARG OPENJDK_VERSION=8.232.09-r0
-ARG OPENJDK_PKGS_URL=https://github.com/mmacata/alpine-openjdk8/releases/download/$OPENJDK_VERSION
-
-RUN apk add curl
-RUN curl -L $OPENJDK_PKGS_URL/openjdk8-$OPENJDK_VERSION.apk > openjdk8-$OPENJDK_VERSION.apk
-RUN curl -L $OPENJDK_PKGS_URL/openjdk8-jre-$OPENJDK_VERSION.apk > openjdk8-jre-$OPENJDK_VERSION.apk
-RUN curl -L $OPENJDK_PKGS_URL/openjdk8-jre-base-$OPENJDK_VERSION.apk > openjdk8-jre-base-$OPENJDK_VERSION.apk
-RUN curl -L $OPENJDK_PKGS_URL/openjdk8-jre-lib-$OPENJDK_VERSION.apk > openjdk8-jre-lib-$OPENJDK_VERSION.apk
-
-RUN apk add --allow-untrusted \
-    openjdk8-jre-lib-$OPENJDK_VERSION.apk \
-    openjdk8-$OPENJDK_VERSION.apk \
-    openjdk8-jre-base-$OPENJDK_VERSION.apk \
-    openjdk8-jre-$OPENJDK_VERSION.apk
-
-
-FROM base as build
-
-LABEL authors="Carmen Tawalika,Markus Neteler"
-LABEL maintainer="tawalika@mundialis.de,neteler@mundialis.de"
+LABEL authors="Carmen Tawalika,Markus Neteler, Thierry Nicola"
+LABEL maintainer="tawalika@mundialis.de,neteler@mundialis.de, tnicola@weo-water.com"
 
 USER root
 
@@ -38,7 +20,6 @@ ENV PACKAGES="\
       fontconfig \
       gcompat \
       libgfortran libgfortran5 \
-      openjdk8 \
       python3 \
       vim \
       ttf-dejavu \
@@ -61,9 +42,9 @@ COPY snap /src/snap
 RUN sh /src/snap/install.sh
 
 
-FROM base as snappy
+FROM openjdk:8-alpine as snappy
 
-RUN apk add python3 ttf-dejavu
+RUN apk add python3 ttf-dejavu py3-pip
 ENV LD_LIBRARY_PATH ".:$LD_LIBRARY_PATH"
 ENV JAVA_HOME "/usr/lib/jvm/java-1.8-openjdk"
 COPY --from=build /root/.snap /root/.snap
